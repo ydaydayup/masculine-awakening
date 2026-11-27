@@ -27,9 +27,23 @@ TMP="$(mktemp -d 2>/dev/null || mktemp -d -t bloggerkb)"
 cleanup() { rm -rf "$TMP" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-URL="${BLOGGER_KB_URL:-https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz}"
+# 下载源按顺序尝试。github.com 的 archive 会 302 到 codeload，国内偶有中断
+# （schannel: missing close_notify），直连 codeload 往往能过，所以两个都留。
 step "下载 ${REPO}"
-curl -fsSL "$URL" -o "$TMP/pkg.tar.gz" || die "下载失败。检查仓库是否公开、分支是否为 ${BRANCH}、网络是否通"
+CANDS=()
+[ -n "${BLOGGER_KB_URL:-}" ] && CANDS+=("$BLOGGER_KB_URL")
+CANDS+=("https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz")
+CANDS+=("https://codeload.github.com/${REPO}/tar.gz/refs/heads/${BRANCH}")
+
+GOT=""
+for u in "${CANDS[@]}"; do
+  if curl -fsSL --retry 2 --retry-delay 2 --max-time 300 -o "$TMP/pkg.tar.gz" "$u" 2>/dev/null; then
+    GOT="$u"
+    break
+  fi
+  step "这个源没通，换下一个"
+done
+[ -n "$GOT" ] || die "所有下载源都没成功。检查网络，或手动下载：https://github.com/${REPO}"
 
 step "解包"
 # 必须先进目录再解，否则 Windows 下 GNU tar 会把 "C:" 当远程主机名。
