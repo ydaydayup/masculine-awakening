@@ -15,13 +15,13 @@
 **macOS / Linux / Git Bash**
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.sh | bash
+curl -fsSL https://fastly.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.sh | bash
 ```
 
 **Windows PowerShell**
 
 ```powershell
-irm https://cdn.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.ps1 | iex
+irm https://fastly.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.ps1 | iex
 ```
 
 > 安装脚本走 jsDelivr，国内可直接访问；数据包从 github.com 下载，带重试和备用源。
