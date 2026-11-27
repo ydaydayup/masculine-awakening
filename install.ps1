@@ -1,6 +1,6 @@
-# blogger-kb installer for Windows PowerShell
+# masculine-awakening installer for Windows PowerShell
 # Usage:
-#   irm https://raw.githubusercontent.com/<owner>/blogger-kb/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/<owner>/masculine-awakening/main/install.ps1 | iex
 #
 # Note: output is English on purpose. Windows PowerShell 5.1 mis-decodes
 # BOM-less UTF-8 scripts, so non-ASCII here would render as garbage.
@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 
 $Repo   = "ydaydayup/masculine-awakening"
 $Branch = "main"
-$Skill  = "blogger-kb"
+$Skill  = "masculine-awakening"
 
 if ($env:WORKBUDDY_SKILLS) {
     $SkillsDir = $env:WORKBUDDY_SKILLS
@@ -18,7 +18,7 @@ if ($env:WORKBUDDY_SKILLS) {
 }
 
 Write-Host ""
-Write-Host "blogger-kb installer"
+Write-Host "masculine-awakening installer"
 Write-Host ""
 
 $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("bloggerkb-" + [guid]::NewGuid().ToString("N").Substring(0, 8))

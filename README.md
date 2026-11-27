@@ -6,7 +6,7 @@
 
 全程离线运行，不联网、不调 API。装好就能问。
 
-> 仓库名是 `masculine-awakening`，安装后技能目录叫 `blogger-kb` —— 前者是这个智库的名字，后者是可复用的检索引擎，两者不必同名。
+> 仓库名、技能名、安装目录三者统一为 `masculine-awakening`。装完在 `~/.workbuddy/skills/masculine-awakening/`，WorkBuddy 里触发的技能名也是它，不用记两套名字。
 
 ---
 
@@ -27,7 +27,7 @@ irm https://fastly.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.ps
 > 安装脚本走 jsDelivr，国内可直接访问；数据包从 github.com 下载，带重试和备用源。
 > 如果 jsDelivr 打不开，把地址换成 `https://raw.githubusercontent.com/ydaydayup/masculine-awakening/main/install.sh`（海外更快，国内可能需要代理）。
 
-装到 `~/.workbuddy/skills/blogger-kb/`（Windows 是 `%USERPROFILE%\.workbuddy\skills\blogger-kb`）。
+装到 `~/.workbuddy/skills/masculine-awakening/`（Windows 是 `%USERPROFILE%\.workbuddy\skills\masculine-awakening`）。
 
 装完重开 WorkBuddy，直接问就行：
 
@@ -39,7 +39,7 @@ irm https://fastly.jsdelivr.net/gh/ydaydayup/masculine-awakening@main/install.ps
 只依赖两个 Python 包，脚本会自动检查：
 
 ```bash
-pip install -r ~/.workbuddy/skills/blogger-kb/requirements.txt
+pip install -r ~/.workbuddy/skills/masculine-awakening/requirements.txt
 ```
 
 - `numpy` —— 向量相似度计算
@@ -82,7 +82,7 @@ pip install -r ~/.workbuddy/skills/blogger-kb/requirements.txt
 装好后可以直接调用，不必经过 WorkBuddy：
 
 ```bash
-cd ~/.workbuddy/skills/blogger-kb
+cd ~/.workbuddy/skills/masculine-awakening
 
 python scripts/check.py                              # 数据完整性自检
 python scripts/read.py --bloggers                    # 看看收了谁、多少条
@@ -97,7 +97,7 @@ python scripts/retrieve.py --pick 7544659445029932347 # 按 id 取全文
 ## 目录结构
 
 ```
-blogger-kb/
+masculine-awakening/
 ├── SKILL.md                 技能说明，WorkBuddy 靠它决定何时触发
 ├── config.json              阈值、域外黑名单、文件路径
 ├── requirements.txt
@@ -134,13 +134,13 @@ blogger-kb/
 ## 卸载
 
 ```bash
-rm -rf ~/.workbuddy/skills/blogger-kb
+rm -rf ~/.workbuddy/skills/masculine-awakening
 ```
 
 Windows：
 
 ```powershell
-Remove-Item "$env:USERPROFILE\.workbuddy\skills\blogger-kb" -Recurse -Force
+Remove-Item "$env:USERPROFILE\.workbuddy\skills\masculine-awakening" -Recurse -Force
 ```
 
 ## 授权

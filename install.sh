@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# blogger-kb 一键安装脚本（macOS / Linux / Windows Git Bash）
+# masculine-awakening 一键安装脚本（macOS / Linux / Windows Git Bash）
 # 用法：
-#   curl -fsSL https://raw.githubusercontent.com/<owner>/blogger-kb/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/<owner>/masculine-awakening/main/install.sh | bash
 #   curl -fsSL .../install.sh | bash -s -- /自定义/技能目录
 set -euo pipefail
 
 REPO="ydaydayup/masculine-awakening"
 BRANCH="main"
-SKILL="blogger-kb"
+SKILL="masculine-awakening"
 
 SKILLS_DIR="${WORKBUDDY_SKILLS:-$HOME/.workbuddy/skills}"
 TARGET="${1:-}"
@@ -17,7 +17,7 @@ step() { printf '  - %s\n' "$*"; }
 die()  { printf '\n出错了：%s\n' "$*" >&2; exit 1; }
 
 say ""
-say "blogger-kb 安装器"
+say "masculine-awakening 安装器"
 say ""
 
 command -v curl >/dev/null 2>&1 || die "没找到 curl。macOS/Linux 一般自带；Windows 请改用 install.ps1"
