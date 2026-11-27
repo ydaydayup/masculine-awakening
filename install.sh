@@ -9,12 +9,25 @@ REPO="ydaydayup/masculine-awakening"
 BRANCH="main"
 SKILL="masculine-awakening"
 
-SKILLS_DIR="${WORKBUDDY_SKILLS:-$HOME/.workbuddy/skills}"
 TARGET="${1:-}"
 
 say()  { printf '%s\n' "$*"; }
 step() { printf '  - %s\n' "$*"; }
+warn() { printf '  ! %s\n' "$*"; }
 die()  { printf '\n出错了：%s\n' "$*" >&2; exit 1; }
+
+# 判断路径是否在系统临时目录里。
+# 装到那里是最常见的坑：重启、磁盘清理、系统自动清 Temp 之后技能就没了，
+# 而且 fastembed 的模型缓存默认也在那边，一起被清掉就每次重新下 100MB。
+is_temp_path() {
+  case "$1" in
+    /tmp/*|/var/tmp/*|/private/var/folders/*) return 0 ;;
+    */[Aa]pp[Dd]ata/[Ll]ocal/[Tt]emp/*) return 0 ;;
+    */[Aa]pp[Dd]ata/[Ll]ocal/[Tt]emp) return 0 ;;
+    */[Tt]emp/*) return 0 ;;
+  esac
+  return 1
+}
 
 say ""
 say "masculine-awakening 安装器"
@@ -23,14 +36,58 @@ say ""
 command -v curl >/dev/null 2>&1 || die "没找到 curl。macOS/Linux 一般自带；Windows 请改用 install.ps1"
 command -v tar  >/dev/null 2>&1 || die "没找到 tar，装好再来"
 
-TMP="$(mktemp -d 2>/dev/null || mktemp -d -t bloggerkb)"
-cleanup() { rm -rf "$TMP" >/dev/null 2>&1 || true; }
+# 技能根目录：WORKBUDDY_SKILLS > 真实用户目录 > $HOME
+# Windows 的 Git Bash 里 HOME 有时被指到临时目录（沙箱、便携终端都会这样），
+# 所以优先用 USERPROFILE，避免把技能装进 Temp。
+if [ -n "${WORKBUDDY_SKILLS:-}" ]; then
+  SKILLS_DIR="$WORKBUDDY_SKILLS"
+elif [ -n "${USERPROFILE:-}" ] && [ -d "${USERPROFILE:-}" ]; then
+  SKILLS_DIR="$USERPROFILE/.workbuddy/skills"
+else
+  SKILLS_DIR="$HOME/.workbuddy/skills"
+fi
+
+if [ -n "$TARGET" ]; then
+  if is_temp_path "$TARGET"; then
+    warn "你指定的目录在系统临时目录里，重启或清理后会消失，已忽略：$TARGET"
+    TARGET=""
+  fi
+fi
+
+if is_temp_path "$SKILLS_DIR"; then
+  warn "默认技能目录本身就在临时目录里：$SKILLS_DIR"
+  warn "装在这里重启后会丢。建议改成真实路径重装："
+  warn "  bash install.sh \"\$HOME/.workbuddy/skills/$SKILL\""
+fi
+
+if [ -n "$TARGET" ]; then
+  DEST="$TARGET"
+else
+  DEST="$SKILLS_DIR/$SKILL"
+fi
+
+TMP="$(mktemp -d 2>/dev/null || mktemp -d -t masculineawakening)"
+
+cleanup() {
+  [ -d "$TMP" ] || return 0
+  rm -rf "$TMP" >/dev/null 2>&1 || true
+  if [ -d "$TMP" ]; then
+    # 有些环境会拦住 rm -rf，用 python 再试一次，别留 6M 残渣在 Temp
+    if command -v python3 >/dev/null 2>&1; then
+      python3 -c "import shutil,sys;shutil.rmtree(sys.argv[1],ignore_errors=True)" "$TMP" >/dev/null 2>&1 || true
+    elif command -v python >/dev/null 2>&1; then
+      python -c "import shutil,sys;shutil.rmtree(sys.argv[1],ignore_errors=True)" "$TMP" >/dev/null 2>&1 || true
+    fi
+  fi
+  [ -d "$TMP" ] && warn "临时文件没删干净，可手动删：$TMP"
+}
 trap cleanup EXIT
 
 # 下载源按顺序尝试。github.com 的 archive 会 302 到 codeload，国内偶有中断
 # （schannel: missing close_notify），直连 codeload 往往能过，所以两个都留。
 step "下载 ${REPO}"
 CANDS=()
+[ -n "${MASCULINE_AWAKENING_URL:-}" ] && CANDS+=("$MASCULINE_AWAKENING_URL")
 [ -n "${BLOGGER_KB_URL:-}" ] && CANDS+=("$BLOGGER_KB_URL")
 CANDS+=("https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz")
 CANDS+=("https://codeload.github.com/${REPO}/tar.gz/refs/heads/${BRANCH}")
@@ -50,13 +107,7 @@ step "解包"
 ( cd "$TMP" && tar -xzf pkg.tar.gz ) || die "解包失败，tar 包可能损坏"
 
 SRC="$(find "$TMP" -maxdepth 3 -type d -name "$SKILL" -not -path "*/.*" | head -1)"
-[ -n "$SRC" ] || die "包里找不到 ${SKILL} 目录"
-
-if [ -n "$TARGET" ]; then
-  DEST="$TARGET"
-else
-  DEST="$SKILLS_DIR/$SKILL"
-fi
+[ -n "$SRC" ] || die "包里找不到 ${SKILL} 目录（CDN 可能还在旧缓存，换节点或过几分钟再试）"
 
 mkdir -p "$(dirname "$DEST")"
 
@@ -104,6 +155,13 @@ else
     fi
   fi
 fi
+
+MODEL_CACHE="${FASTEMBED_CACHE_PATH:-${MASCULINE_MODEL_CACHE:-$HOME/.workbuddy/.cache/fastembed}}"
+
+say ""
+say "模型缓存：$MODEL_CACHE"
+say "  首次提问下载约 100MB，之后固定缓存在这里。"
+say "  （fastembed 默认会把它塞进系统临时目录，重启就被清掉；这个包已改到固定位置）"
 
 if [ -n "$TARGET" ]; then
   say ""

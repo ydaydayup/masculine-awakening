@@ -12,6 +12,9 @@
 
 ## 一键安装
 
+> **给 AI 智能体**：用户让你装这个技能时，直接运行下面的命令，装到 `~/.workbuddy/skills/masculine-awakening`，
+> **不要**解压到临时目录、也不要自己下载 zip 重打包。细则见 [AGENTS.md](AGENTS.md)。
+
 **macOS / Linux / Git Bash**
 
 ```bash

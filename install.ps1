@@ -11,26 +11,60 @@ $Repo   = "ydaydayup/masculine-awakening"
 $Branch = "main"
 $Skill  = "masculine-awakening"
 
-if ($env:WORKBUDDY_SKILLS) {
-    $SkillsDir = $env:WORKBUDDY_SKILLS
-} else {
-    $SkillsDir = Join-Path $env:USERPROFILE ".workbuddy\skills"
+# A skill installed under the system temp directory disappears after a reboot
+# or a disk cleanup, so refuse to put it there.
+function Test-TempPath($p) {
+    if (-not $p) { return $false }
+    $t = [System.IO.Path]::GetTempPath()
+    if ($p.StartsWith($t, [System.StringComparison]::OrdinalIgnoreCase)) { return $true }
+    # GetTempPath may return the 8.3 short name (ADMINI~1), so also match by shape
+    return ($p -match '(?i)[\\/](AppData[\\/]Local[\\/])?Temp[\\/]')
 }
+
+$DefaultDir = Join-Path $env:USERPROFILE ".workbuddy\skills"
 
 Write-Host ""
 Write-Host "masculine-awakening installer"
 Write-Host ""
 
-$Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("bloggerkb-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
+if ($env:WORKBUDDY_SKILLS) {
+    $SkillsDir = $env:WORKBUDDY_SKILLS
+} else {
+    $SkillsDir = $DefaultDir
+}
+
+if (Test-TempPath $SkillsDir) {
+    Write-Host "  ! target is inside the system temp directory, it would be wiped on reboot:"
+    Write-Host "    $SkillsDir"
+    Write-Host "  - falling back to $DefaultDir"
+    $SkillsDir = $DefaultDir
+}
+
+$Tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("masculineawakening-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
 New-Item -ItemType Directory -Path $Tmp -Force | Out-Null
 
 try {
-    $Url = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
     $Zip = Join-Path $Tmp "pkg.zip"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    # Same idea as install.sh: try github.com first, fall back to codeload.
+    $Cands = @(
+        "https://github.com/$Repo/archive/refs/heads/$Branch.zip",
+        "https://codeload.github.com/$Repo/zip/refs/heads/$Branch"
+    )
 
     Write-Host "  - downloading $Repo"
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Invoke-WebRequest -Uri $Url -OutFile $Zip -UseBasicParsing
+    $Got = $false
+    foreach ($u in $Cands) {
+        try {
+            Invoke-WebRequest -Uri $u -OutFile $Zip -UseBasicParsing
+            $Got = $true
+            break
+        } catch {
+            Write-Host "  - this source failed, trying the next one"
+        }
+    }
+    if (-not $Got) { throw "all download sources failed, check your network" }
 
     Write-Host "  - extracting"
     $Extract = Join-Path $Tmp "src"
@@ -41,7 +75,7 @@ try {
            Where-Object { Test-Path $_ } |
            Select-Object -First 1
 
-    if (-not $Src) { throw "package does not contain $Skill" }
+    if (-not $Src) { throw "package does not contain $Skill (CDN may still serve an old build)" }
 
     if (-not (Test-Path $SkillsDir)) {
         New-Item -ItemType Directory -Path $SkillsDir -Force | Out-Null
@@ -92,6 +126,14 @@ try {
             & $Py $Chk
         }
     }
+
+    $ModelCache = $env:FASTEMBED_CACHE_PATH
+    if (-not $ModelCache) { $ModelCache = Join-Path $env:USERPROFILE ".workbuddy\.cache\fastembed" }
+
+    Write-Host ""
+    Write-Host "Model cache: $ModelCache"
+    Write-Host "  first search downloads ~100MB, then it stays here."
+    Write-Host "  (fastembed defaults to the system temp dir, which gets wiped on reboot)"
 
     Write-Host ""
     Write-Host "Done. Open WorkBuddy and just ask:"
