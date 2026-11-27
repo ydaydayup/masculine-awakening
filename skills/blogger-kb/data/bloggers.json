@@ -1,0 +1,25 @@
+[
+ {
+  "id": "f73ebd74c388a6ed",
+  "platform": "dy",
+  "name": "潇洒哥涂龙",
+  "raw_nickname": "潇***】",
+  "aliases": [
+   "潇洒哥",
+   "涂龙",
+   "屠龙",
+   "拉闸哥",
+   "拉哥",
+   "扎哥"
+  ],
+  "counts": {
+   "crawled": 1283,
+   "speech": 1273,
+   "silent": 10,
+   "chars": 1088480,
+   "range": "2024-12-13 ~ 2026-11-26",
+   "summaries": 1273
+  },
+  "min_score": 0.58
+ }
+]

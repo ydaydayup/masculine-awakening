@@ -1,0 +1,38 @@
+{
+  "kb": {
+    "bloggers": 1,
+    "videos": 1273,
+    "chars": 1088480,
+    "range": "2024-12-13 ~ 2026-11-26",
+    "built_at": "2026-11-27",
+    "threshold_note": "全局 vector_min_score 取各博主标定值的最小值（潇洒哥涂龙=0.58）；点名单位博主时用他自己的 min_score"
+  },
+  "version": 4,
+  "bloggers_file": "data/bloggers.json",
+  "summary_file": "data/summaries.json",
+  "transcript_file": "data/transcripts.jsonl",
+  "vector_file": "data/vectors.npy",
+  "vector_meta": "data/vectors.json",
+  "vector_min_score": 0.58,
+  "vector_min_margin": 0.02,
+  "vector_top": 5,
+  "vector_ratio": 0.6,
+  "vector_scope_ceiling": 1.4,
+  "out_of_scope": [
+    "育儿",
+    "发烧",
+    "住院",
+    "颈椎",
+    "减肥",
+    "健身计划",
+    "股票",
+    "基金",
+    "装修",
+    "孕期",
+    "产检",
+    "英语",
+    "志愿",
+    "做菜",
+    "红烧肉"
+  ]
+}
